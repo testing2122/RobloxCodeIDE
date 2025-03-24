@@ -4,13 +4,13 @@
 -- // load dependencies directly with http get to enable running the whole ide with just one loadstring
 local function load_module(name)
     local urls = {
-        utils = "https://raw.githubusercontent.com/username/RobloxCodeIDE/main/utils.lua",
-        config = "https://raw.githubusercontent.com/username/RobloxCodeIDE/main/config.lua",
-        themes_manager = "https://raw.githubusercontent.com/username/RobloxCodeIDE/main/themesManager.lua",
-        file_explorer = "https://raw.githubusercontent.com/username/RobloxCodeIDE/main/fileExplorer.lua",
-        code_editor = "https://raw.githubusercontent.com/username/RobloxCodeIDE/main/codeEditor.lua",
-        functions = "https://raw.githubusercontent.com/username/RobloxCodeIDE/main/functions.lua",
-        ui = "https://raw.githubusercontent.com/username/RobloxCodeIDE/main/ui.lua"
+        utils = "https://raw.githubusercontent.com/testing2122/RobloxCodeIDE/main/utils.lua",
+        config = "https://raw.githubusercontent.com/testing2122/RobloxCodeIDE/main/config.lua",
+        themes_manager = "https://raw.githubusercontent.com/testing2122/RobloxCodeIDE/main/themesManager.lua",
+        file_explorer = "https://raw.githubusercontent.com/testing2122/RobloxCodeIDE/main/fileExplorer.lua",
+        code_editor = "https://raw.githubusercontent.com/testing2122/RobloxCodeIDE/main/codeEditor.lua",
+        functions = "https://raw.githubusercontent.com/testing2122/RobloxCodeIDE/main/functions.lua",
+        ui = "https://raw.githubusercontent.com/testing2122/RobloxCodeIDE/main/ui.lua"
     };
     
     local success, result = pcall(function()
