@@ -1,7 +1,7 @@
 -- // ui module for code ide
-local utils = loadstring(game:HttpGet("https://raw.githubusercontent.com/username/RobloxCodeIDE/main/utils.lua"))();
-local config = loadstring(game:HttpGet("https://raw.githubusercontent.com/username/RobloxCodeIDE/main/config.lua"))();
-local themes_mgr = loadstring(game:HttpGet("https://raw.githubusercontent.com/username/RobloxCodeIDE/main/themesManager.lua"))();
+local utils = loadstring(game:HttpGet("https://raw.githubusercontent.com/testing2122/RobloxCodeIDE/main/utils.lua"))();
+local config = loadstring(game:HttpGet("https://raw.githubusercontent.com/testing2122/RobloxCodeIDE/main/config.lua"))();
+local themes_mgr = loadstring(game:HttpGet("https://raw.githubusercontent.com/testing2122/RobloxCodeIDE/main/themesManager.lua"))();
 
 local plrs = game:GetService("Players");
 local uis = game:GetService("UserInputService");
