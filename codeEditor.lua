@@ -214,6 +214,15 @@ function editor:connect_events()
         self.code_view.CanvasSize = UDim2.new(0, content_size.X + 300, 0, content_size.Y + padding);
     end);
     
+    -- // Handle mouse click on code view for cursor positioning
+    self.code_view.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            -- Handle click positioning logic here
+            local mousePos = input.Position;
+            -- Position cursor or handle text selection
+        end
+    end);
+    
     -- // clipboard shortcut handling
     uis.InputBegan:Connect(function(input, processed)
         if processed then return end
