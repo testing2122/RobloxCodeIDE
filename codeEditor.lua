@@ -193,35 +193,61 @@ end
 
 -- // connect ui events
 function editor:connect_events()
-    -- // toolbar button events
-    self.save_btn.MouseButton1Click:Connect(function()
-        self:save_file();
-    end);
+    -- // Make sure we're connecting events to the correct objects
+    -- // Button click events (these should work if they're proper buttons)
+    if self.save_btn then
+        self.save_btn.MouseButton1Click:Connect(function()
+            self:save_file();
+        end);
+    end
     
-    self.run_btn.MouseButton1Click:Connect(function()
-        self:run_code();
-    end);
+    if self.run_btn then
+        self.run_btn.MouseButton1Click:Connect(function()
+            self:run_code();
+        end);
+    end
     
-    -- // sync scrolling between line numbers and code view
-    self.code_view:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
-        self.line_numbers.CanvasPosition = Vector2.new(0, self.code_view.CanvasPosition.Y);
-    end);
-    
-    -- // update canvas size when content changes
-    self.code_layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-        local content_size = self.code_layout.AbsoluteContentSize;
-        local padding = 50; -- // extra padding at bottom
-        self.code_view.CanvasSize = UDim2.new(0, content_size.X + 300, 0, content_size.Y + padding);
-    end);
-    
-    -- // Handle mouse click on code view for cursor positioning
-    self.code_view.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            -- Handle click positioning logic here
-            local mousePos = input.Position;
-            -- Position cursor or handle text selection
+    -- // For ScrollingFrame, use InputBegan instead of MouseButton1Click
+    if self.code_view then
+        self.code_view.InputBegan:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                -- Handle click positioning logic
+                local mousePos = input.Position;
+                -- Position cursor or handle text selection
+            end
+        end);
+        
+        -- // sync scrolling between line numbers and code
+        self.code_view:GetPropertyChangedSignal("CanvasPosition"):Connect(function()
+            if self.line_numbers then
+                self.line_numbers.CanvasPosition = Vector2.new(0, self.code_view.CanvasPosition.Y);
+            end
+        end);
+        
+        -- // update canvas size for code view
+        if self.code_layout then
+            self.code_layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+                local content_size = self.code_layout.AbsoluteContentSize;
+                local padding = 50; -- // extra padding at bottom
+                self.code_view.CanvasSize = UDim2.new(0, content_size.X + 300, 0, content_size.Y + padding);
+            end);
         end
-    end);
+    end
+    
+    -- // text input events
+    if self.text_input then
+        self.text_input.Focused:Connect(function()
+            self.cursor.Visible = true;
+        end);
+        
+        self.text_input.FocusLost:Connect(function()
+            self.cursor.Visible = false;
+        end);
+        
+        self.text_input:GetPropertyChangedSignal("Text"):Connect(function()
+            -- Handle text change
+        end);
+    end
     
     -- // clipboard shortcut handling
     uis.InputBegan:Connect(function(input, processed)
@@ -244,32 +270,6 @@ function editor:connect_events()
         elseif input.KeyCode == Enum.KeyCode.F5 then
             self:run_code();
         end
-    end);
-    
-    -- // text input handling
-    self.text_input.FocusLost:Connect(function(enter_pressed)
-        -- // handle text input when focus is lost
-    end);
-    
-    -- // cursor blinking
-    local blink = true;
-    game:GetService("RunService").Heartbeat:Connect(function()
-        if tick() % 1 < 0.5 then
-            if not blink then
-                blink = true;
-                self.cursor.Visible = self.cursor.Visible;
-            end
-        else
-            if blink then
-                blink = false;
-                self.cursor.Visible = not self.cursor.Visible;
-            end
-        end
-    end);
-    
-    -- // focus handling
-    self.code_view.MouseButton1Click:Connect(function()
-        self.text_input:CaptureFocus();
     end);
 end
 
