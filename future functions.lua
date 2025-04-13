@@ -4,7 +4,8 @@ local remoteLogger = {
     enabled = false,
     remotes = {},
     connection = nil,
-    loggedArgs = {}
+    loggedArgs = {},
+    hookFunction = nil
 }
 
 -- Create UI elements
@@ -103,7 +104,10 @@ function remoteLogger.logRemoteArgs(remote, ...)
     for i, arg in ipairs(args) do
         local argType = typeof(arg)
         if argType == "table" then
-            argStr = argStr .. "table" .. i .. ": " .. game:GetService("HttpService"):JSONEncode(arg)
+            local success, encoded = pcall(function()
+                return game:GetService("HttpService"):JSONEncode(arg)
+            end)
+            argStr = argStr .. "table" .. i .. ": " .. (success and encoded or "Failed to encode")
         else
             argStr = argStr .. "arg" .. i .. ": " .. tostring(arg)
         end
@@ -179,32 +183,29 @@ function remoteLogger.createRemoteButton(remote, index)
     return btn
 end
 
-function remoteLogger.checkRemote(remote, btn)
-    local success = false
-    local statusLabel = btn:FindFirstChild("Status")
+function remoteLogger.setupNamecall()
+    if remoteLogger.hookFunction then return end
     
-    if remote:IsA("RemoteEvent") then
-        success = pcall(function()
-            remote:FireServer("test")
-            task.wait(0.1) -- Wait for potential response
-        end)
-    elseif remote:IsA("RemoteFunction") then
-        success = pcall(function()
-            remote:InvokeServer("test")
-        end)
-    end
+    local oldNamecall
+    oldNamecall = hookmetamethod(game, "__namecall", newcclosure(function(self, ...)
+        local args = {...}
+        local method = getnamecallmethod()
+        
+        if remoteLogger.enabled and (method == "FireServer" or method == "InvokeServer") and (self:IsA("RemoteEvent") or self:IsA("RemoteFunction")) then
+            task.spawn(function()
+                remoteLogger.logRemoteArgs(self, ...)
+                local btn = dropScroll:FindFirstChild(self.Name .. "_Btn")
+                if btn and btn:FindFirstChild("Status") then
+                    btn.Status.Text = "Logged"
+                    btn.Status.TextColor3 = Color3.fromRGB(100, 200, 100)
+                end
+            end)
+        end
+        
+        return oldNamecall(self, ...)
+    end))
     
-    if success then
-        if statusLabel then
-            statusLabel.Text = "Logged"
-            statusLabel.TextColor3 = Color3.fromRGB(100, 200, 100)
-        end
-    else
-        if statusLabel then
-            statusLabel.Text = "Failed"
-            statusLabel.TextColor3 = Color3.fromRGB(200, 100, 100)
-        end
-    end
+    remoteLogger.hookFunction = oldNamecall
 end
 
 function remoteLogger.startChecking()
@@ -229,19 +230,11 @@ function remoteLogger.startChecking()
     dropFrame.Size = UDim2.new(0, 200, 0, math.min(200, #remoteLogger.remotes * 27 + 4))
     dropFrame.Visible = true
     
-    -- Start checking remotes
-    task.spawn(function()
-        for i, remote in ipairs(remoteLogger.remotes) do
-            local btn = dropScroll:FindFirstChild(remote.Name .. "_Btn")
-            if btn then
-                remoteLogger.checkRemote(remote, btn)
-                task.wait(0.1) -- Delay between checks
-            end
-        end
-        
-        remoteLogger.updateSystemPrompt()
-        _G.partSelector.showNotif("Successfully added the remotes", 3)
-    end)
+    -- Setup namecall hook
+    remoteLogger.setupNamecall()
+    
+    -- Notify user
+    _G.partSelector.showNotif("Remote logger enabled - waiting for remote calls", 3)
 end
 
 -- Connect button
@@ -254,6 +247,7 @@ remoteToggleBtn.MouseButton1Click:Connect(function()
     else
         dropFrame.Visible = false
         dropFrame.Size = UDim2.new(0, 200, 0, 0)
+        remoteLogger.loggedArgs = {}
     end
 end)
 
